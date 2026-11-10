@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memória: Países da América Latina</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #3e2723 0%, #6d4c41 40%, #2e7d32 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    color: #fff;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+    text-align: center;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+
+  .stats {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 15px;
+    background: rgba(255,255,255,0.15);
+    padding: 10px 25px;
+    border-radius: 30px;
+    backdrop-filter: blur(5px);
+    font-size: 0.95rem;
+  }
+
+  .stats span { font-weight: bold; color: #ffd54f; }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    max-width: 750px;
+    width: 100%;
+    margin-bottom: 15px;
+  }
+
+  .card {
+    aspect-ratio: 1 / 1;
+    perspective: 1000px;
+    cursor: pointer;
+  }
+
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s;
+    transform-style: preserve-3d;
+  }
+
+  .card.flipped .card-inner,
+  .card.matched .card-inner {
+    transform: rotateY(180deg);
+  }
+
+  .card.matched {
+    animation: pulse 0.6s ease;
+    cursor: default;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+
+  .card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6px;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  }
+
+  .card-front {
+    background: linear-gradient(145deg, #2e7d32, #66bb6a);
+    color: #fff59d;
+    font-size: 2rem;
+    border: 3px solid #ffd54f;
+  }
+
+  .card-front::after { content: "🌎"; }
+
+  .card-back {
+    background: linear-gradient(145deg, #fafafa, #e0e0e0);
+    color: #3e2723;
+    transform: rotateY(180deg);
+    font-size: 0.9rem;
+    line-height: 1.25;
+    border: 3px solid #3e2723;
+    word-break: break-word;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .card-back .tipo {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #777;
+    font-weight: 600;
+  }
+
+  .card-back .bandeira {
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .card-back.pais {
+    background: linear-gradient(145deg, #fff8e1, #ffe082);
+  }
+
+  .card-back.capital {
+    background: linear-gradient(145deg, #e3f2fd, #90caf9);
+  }
+
+  .card.matched .card-back {
+    background: linear-gradient(145deg, #a5d6a7, #4caf50) !important;
+    color: #fff;
+    border-color: #1b5e20;
+  }
+
+  .card.matched .card-back .tipo { color: #e8f5e9; }
+
+  .controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  button {
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  }
+
+  button:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.45); }
+  button:active { transform: translateY(0); }
+
+  #btn-reiniciar {
+    background: linear-gradient(145deg, #ffd54f, #ffb300);
+    color: #3e2723;
+  }
+
+  #btn-dificuldade {
+    background: linear-gradient(145deg, #43a047, #2e7d32);
+    color: #fff;
+  }
+
+  .win-message {
+    margin-top: 15px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #ffd54f;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+    text-align: center;
+    min-height: 32px;
+    animation: fadeIn 0.5s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 1.3rem; }
+    .board { gap: 6px; }
+    .card-back { font-size: 0.72rem; }
+    .card-back .tipo { font-size: 0.55rem; }
+    .card-back .bandeira { font-size: 1.5rem; }
+    .stats { gap: 15px; padding: 8px 15px; font-size: 0.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🌎 Memória: América Latina</h1>
+<p class="subtitle">Encontre os pares: cada país com sua capital!</p>
+
+<div class="stats">
+  <div>Jogadas: <span id="jogadas">0</span></div>
+  <div>Pares: <span id="pares">0</span>/<span id="total-pares">8</span></div>
+</div>
+
+<div class="board" id="board"></div>
+
+<div class="controls">
+  <button id="btn-reiniciar">🔄 Reiniciar</button>
+  <button id="btn-dificuldade">🎚️ Dificuldade: 8 pares</button>
+</div>
+
+<div class="win-message" id="win-message"></div>
+
+<script>
+  // Países da América Latina (20 países independentes da região)
+  const TODOS_PAISES = [
+    { pais: "Brasil", capital: "Brasília", bandeira: "🇧🇷" },
+    { pais: "Argentina", capital: "Buenos Aires", bandeira: "🇦🇷" },
+    { pais: "Chile", capital: "Santiago", bandeira: "🇨🇱" },
+    { pais: "Uruguai", capital: "Montevidéu", bandeira: "🇺🇾" },
+    { pais: "Paraguai", capital: "Assunção", bandeira: "🇵🇾" },
+    { pais: "Bolívia", capital: "La Paz / Sucre", bandeira: "🇧🇴" },
+    { pais: "Peru", capital: "Lima", bandeira: "🇵🇪" },
+    { pais: "Equador", capital: "Quito", bandeira: "🇪🇨" },
+    { pais: "Colômbia", capital: "Bogotá", bandeira: "🇨🇴" },
+    { pais: "Venezuela", capital: "Caracas", bandeira: "🇻🇪" },
+    { pais: "México", capital: "Cidade do México", bandeira: "🇲🇽" },
+    { pais: "Guatemala", capital: "Cidade da Guatemala", bandeira: "🇬🇹" },
+    { pais: "Belize", capital: "Belmopan", bandeira: "🇧🇿" },
+    { pais: "Honduras", capital: "Tegucigalpa", bandeira: "🇭🇳" },
+    { pais: "El Salvador", capital: "San Salvador", bandeira: "🇸🇻" },
+    { pais: "Nicarágua", capital: "Manágua", bandeira: "🇳🇮" },
+    { pais: "Costa Rica", capital: "San José", bandeira: "🇨🇷" },
+    { pais: "Panamá", capital: "Cidade do Panamá", bandeira: "🇵🇦" },
+    { pais: "Cuba", capital: "Havana", bandeira: "🇨🇺" },
+    { pais: "República Dominicana", capital: "Santo Domingo", bandeira: "🇩🇴" }
+  ];
+
+  const NIVEIS = [
+    { pares: 4, label: "Fácil (4 pares)" },
+    { pares: 6, label: "Médio (6 pares)" },
+    { pares: 8, label: "Difícil (8 pares)" },
+    { pares: 10, label: "Muito difícil (10 pares)" }
+  ];
+
+  let nivelIdx = 2;
+  let board = document.getElementById('board');
+  let jogadasEl = document.getElementById('jogadas');
+  let paresEl = document.getElementById('pares');
+  let totalParesEl = document.getElementById('total-pares');
+  let winMessage = document.getElementById('win-message');
+
+  let primeiraCarta = null;
+  let segundaCarta = null;
+  let bloqueado = false;
+  let jogadas = 0;
+  let paresEncontrados = 0;
+  let totalPares = 0;
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function criarCartas() {
+    const nivel = NIVEIS[nivelIdx];
+    totalPares = nivel.pares;
+    totalParesEl.textContent = totalPares;
+
+    const selecionados = shuffle(TODOS_PAISES).slice(0, totalPares);
+
+    const cartas = [];
+    selecionados.forEach((item, idx) => {
+      cartas.push({ tipo: 'pais', texto: item.pais, bandeira: item.bandeira, parId: idx });
+      cartas.push({ tipo: 'capital', texto: item.capital, bandeira: item.bandeira, parId: idx });
+    });
+
+    return shuffle(cartas);
+  }
+
+  function iniciarJogo() {
+    board.innerHTML = '';
+    winMessage.textContent = '';
+    primeiraCarta = null;
+    segundaCarta = null;
+    bloqueado = false;
+    jogadas = 0;
+    paresEncontrados = 0;
+    jogadasEl.textContent = 0;
+    paresEl.textContent = 0;
+
+    const cartas = criarCartas();
+    const total = cartas.length;
+    let cols = 4;
+    if (total > 16) cols = 5;
+    board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+    cartas.forEach((carta, index) => {
+      const cardEl = document.createElement('div');
+      cardEl.classList.add('card');
+      cardEl.dataset.parId = carta.parId;
+      cardEl.dataset.tipo = carta.tipo;
+      cardEl.dataset.index = index;
+
+      cardEl.innerHTML = `
+        <div class="card-inner">
+          <div class="card-face card-front"></div>
+          <div class="card-face card-back ${carta.tipo}">
+            <span class="tipo">${carta.tipo === 'pais' ? 'País' : 'Capital'}</span>
+            <span class="bandeira">${carta.bandeira}</span>
+            <span>${carta.texto}</span>
+          </div>
+        </div>
+      `;
+
+      cardEl.addEventListener('click', () => virarCarta(cardEl));
+      board.appendChild(cardEl);
+    });
+  }
+
+  function virarCarta(card) {
+    if (bloqueado) return;
+    if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+    card.classList.add('flipped');
+
+    if (!primeiraCarta) {
+      primeiraCarta = card;
+      return;
+    }
+
+    segundaCarta = card;
+    bloqueado = true;
+    jogadas++;
+    jogadasEl.textContent = jogadas;
+
+    verificarPar();
+  }
+
+  function verificarPar() {
+    const par1 = primeiraCarta.dataset.parId;
+    const par2 = segundaCarta.dataset.parId;
+    const tipo1 = primeiraCarta.dataset.tipo;
+    const tipo2 = segundaCarta.dataset.tipo;
+
+    const ehPar = (par1 === par2) && (tipo1 !== tipo2);
+
+    if (ehPar) {
+      primeiraCarta.classList.add('matched');
+      segundaCarta.classList.add('matched');
+      paresEncontrados++;
+      paresEl.textContent = paresEncontrados;
+      resetarSelecao();
+
+      if (paresEncontrados === totalPares) {
+        setTimeout(() => {
+          winMessage.textContent = `🎉 Parabéns! Você venceu em ${jogadas} jogadas!`;
+        }, 400);
+      }
+    } else {
+      setTimeout(() => {
+        primeiraCarta.classList.remove('flipped');
+        segundaCarta.classList.remove('flipped');
+        resetarSelecao();
+      }, 900);
+    }
+  }
+
+  function resetarSelecao() {
+    primeiraCarta = null;
+    segundaCarta = null;
+    bloqueado = false;
+  }
+
+  document.getElementById('btn-reiniciar').addEventListener('click', iniciarJogo);
+
+  document.getElementById('btn-dificuldade').addEventListener('click', (e) => {
+    nivelIdx = (nivelIdx + 1) % NIVEIS.length;
+    e.target.textContent = `🎚️ Dificuldade: ${NIVEIS[nivelIdx].label}`;
+    iniciarJogo();
+  });
+
+  document.getElementById('btn-dificuldade').textContent = `🎚️ Dificuldade: ${NIVEIS[nivelIdx].label}`;
+  iniciarJogo();
+</script>
+
+</body>
+</html>
